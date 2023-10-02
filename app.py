@@ -57,6 +57,7 @@ def scan(img):
     # Resize image to workable size
     dim_limit = 1080
     max_dim = max(img.shape)
+    
     if max_dim > dim_limit:
         resize_scale = dim_limit / max_dim
         img = cv2.resize(img, None, fx=resize_scale, fy=resize_scale)
@@ -68,11 +69,19 @@ def scan(img):
     img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=3)
     print("morphology done")
     # GrabCut
+    
     mask = np.zeros(img.shape[:2], np.uint8)
     bgdModel = np.zeros((1, 65), np.float64)
     fgdModel = np.zeros((1, 65), np.float64)
-    rect = (20, 20, img.shape[1] - 20, img.shape[0] - 20)
-    cv2.grabCut(img, mask, rect, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_RECT)
+    rect = (20, 20, img.shape[1]-20 , img.shape[0]-20)
+    print(img.shape[:2])
+    x,y = img.shape[:2]
+    if x*y >= 1080000:
+        it = 25
+    else: it=15
+    print(it)
+    cv2.grabCut(img, mask, rect, bgdModel, fgdModel, it,cv2.GC_INIT_WITH_RECT)
+    
     mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
     img = img * mask2[:, :, np.newaxis]
 
@@ -135,6 +144,7 @@ image = None
 final = None
 col1, col2 = st.columns(2)
 
+
 if uploaded_file is not None:
 
     # Convert the file to an opencv image.
@@ -144,7 +154,6 @@ if uploaded_file is not None:
     # manual = st.sidebar.checkbox('Adjust Manually', False)
     h, w = image.shape[:2]
     h_, w_ = int(h * 400 / w), 400
-
 
     with col1:
         st.title('Input')
